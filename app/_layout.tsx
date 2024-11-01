@@ -1,37 +1,56 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+import {
+    Montserrat_100Thin,
+    Montserrat_200ExtraLight,
+    Montserrat_300Light,
+    Montserrat_400Regular,
+    Montserrat_500Medium,
+    Montserrat_600SemiBold,
+    Montserrat_700Bold,
+    Montserrat_800ExtraBold,
+    Montserrat_900Black,
+    useFonts
+} from '@expo-google-fonts/montserrat';
+import { QueryClient, QueryClientConfig, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
+import './global.css';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+const queryConfig: QueryClientConfig = { defaultOptions: { queries: { retry: false } } };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+    const [queryClient] = useState(() => new QueryClient(queryConfig));
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    const [fontsLoaded, fontError] = useFonts({
+        'm-thin': Montserrat_100Thin,
+        'm-extra-light': Montserrat_200ExtraLight,
+        'm-light': Montserrat_300Light,
+        'm-regular': Montserrat_400Regular,
+        'm-medium': Montserrat_500Medium,
+        'm-semi-bold': Montserrat_600SemiBold,
+        'm-bold': Montserrat_700Bold,
+        'm-extra-bold': Montserrat_800ExtraBold,
+        'm-black': Montserrat_900Black
+    });
 
-  if (!loaded) {
-    return null;
-  }
+    useEffect(() => {
+        if (fontsLoaded || fontError) SplashScreen.hideAsync();
+    }, [fontsLoaded, fontError]);
 
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
-  );
+    if (!fontsLoaded && !fontError) return null;
+
+    return (
+        <QueryClientProvider client={queryClient}>
+            {/* <GestureHandlerRootView className="bg-red-200">
+                <SafeAreaProvider> */}
+            <Stack>
+                <Stack.Screen name="(tab)" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" />
+            </Stack>
+            {/* </SafeAreaProvider>
+            </GestureHandlerRootView> */}
+        </QueryClientProvider>
+    );
 }
